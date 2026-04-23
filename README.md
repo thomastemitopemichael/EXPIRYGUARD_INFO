@@ -1,293 +1,256 @@
-# 🛡️ ExpiryGuard v4.0.5
+# Terms and Conditions — ExpiryGuard
 
-**Product Expiry Tracking SaaS — Full Stack**
-Stack: Node.js/Express (Railway) · Supabase (PostgreSQL + Auth) · Twilio (SMS) · Resend (Email) · Claude Vision (OCR) · Paystack (Payments) · Netlify (Frontend)
-
----
-
-## All Issues Fixed in v4.0.5
-
-| Issue | Root Cause | Fix Applied |
-|---|---|---|
-| **Profile overlay read-only** | Profile fields (name, username, timezone) were removed from settings but no editable form was added to the overlay | Overlay now has View and Edit modes. Tap "Edit Profile" to open inline form with name, username, timezone editing and username availability check |
-| **Cron alerts stopped firing** | `.eq("profiles.is_blocked", false)` on a Supabase join does not work in Supabase JS v2 — silently returns zero rows, so no products were fetched at all | Fixed: fetch blocked user IDs in a separate query, then filter in JavaScript before sending alerts |
-| **Icons showing as boxes in Kodular** | Some Android WebView versions don't support all emoji code points | No code change needed — the HTML is correctly UTF-8 encoded. If boxes appear on-device, enable emoji fonts in Kodular or use text labels |
-| **CSV download fails in Kodular WebView** | `URL.createObjectURL()` + anchor click doesn't trigger file download in WebView | Falls back to `data:text/csv` URI opened via `window.open()`. User taps ⋮ in their browser to save the file |
-| **Blocked users still received cron alerts** | Same bad join query above — all users' alerts were being skipped, not just blocked ones | Fixed with the two-step query approach |
-| **Login returns to settings page** | `localStorage` was persisting last navigation state across sessions | `last_dpage` and `last_mpage` cleared on logout. App always opens at Dashboard on fresh login |
-| **Forgot password broken** | `FRONTEND_URL` env var incorrect, and Resend free tier restricts sending | Fixed email template with plain text link fallback. Ensure `FRONTEND_URL` matches your Netlify URL exactly |
-| **Change password missing** | Feature not implemented | New overlay modal in settings: enter current password + new password (dual entry) → verified server-side |
-| **Railway URL visible to all** | API settings section was shown to everyone | Hidden entirely for non-admin users. Only users with `plan: "admin"` see the backend URL section |
-| **Test-mode products persist** | No tracking of which products were added during test mode | `added_in_test_mode` column on products table. Disabling test mode (from admin) auto-deletes these products |
-| **Plan badge missing** | Not implemented | Plan chip (Free / Paid / Admin / Test) shown in sidebar footer (desktop) and available in profile overlay |
-| **OCR gated correctly** | OCR was available to all users | Now only visible to Paid / Admin / Test mode users, or users with ≥ `sms_min_credits` credits |
-| **Logo not inline** | Font-size too large, flexbox not applied correctly | Reduced to 14px (mobile) / 13px (desktop), flex row with `align-items:center` |
-| **Logo click shows profile** | Not implemented | Clicking 🛡️ ExpiryGuard on both mobile and desktop opens the profile overlay |
-| **Logo wiggle animation** | Not implemented | `logoWiggle` CSS animation plays twice on load to hint users to click the logo |
-| **Username change limit** | Not enforced | `username_changes` counter in profiles, `max_username_changes` admin setting. Profile edit shows remaining changes |
-| **FAB hidden on settings** | FAB appeared on all pages | Hidden (opacity 0, pointer-events none) when on settings or notifications page |
-| **Dark mode flash on toggle** | `body { transition: background .25s }` fired during theme switch | Fix: `body.style.transition = 'none'` before switching, restored via `requestAnimationFrame` after paint |
-| **Notifications page** | Not implemented | Full notifications page on both desktop (sidebar nav) and mobile (bottom nav). Credit additions and system events create notifications. Unread dot on bell icon |
-| **Bank transfer fallback** | Not implemented | Configured in Admin → Settings → Bank Account Fallback. Shown in credits modal when Paystack fails |
-| **Stop registrations toggle** | Not implemented | `registration_open` admin setting. Toggle in Admin → Settings. Signup page shows "Registration closed" and button is disabled |
-| **Auto logout not enforced** | Frontend read from localStorage, not server | Frontend fetches `/api/config` on boot — gets `auto_logout_minutes` from DB. Admin changes take effect on next user boot |
-| **Settings (terms URL) not enforced** | Same as above | Terms URL, SMS threshold, paystack key all fetched from `/api/config` on every boot |
+**Last Updated:** [DATE]
+**Effective Date:** [DATE]
 
 ---
 
-## Files in This Version
+## 1. Acceptance of Terms
 
-```
-expiryguard_v405/
-├── backend/
-│   ├── server.js              — Complete backend v4.0.5
-│   ├── supabase_schema.sql    — Run in Supabase SQL Editor
-│   ├── package.json           — Dependencies
-│   ├── Procfile               — Railway startup
-│   └── .env.example           — All environment variables
-├── frontend/
-│   ├── index.html             — Main user platform
-│   └── admin.html             — Admin management panel
-├── BANK_ACCOUNTS_TEMPLATE.txt — Guide for setting up bank transfer
-├── TERMS_TEMPLATE.txt         — Terms & Conditions template
-└── README.md                  — This file
-```
+By creating an account or using ExpiryGuard ("the App," "the Service"), you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree with any part of these Terms, you must not use the Service.
+
+These Terms constitute a legally binding agreement between you ("User," "you") and [YOUR NAME / BUSINESS NAME] ("Operator," "we," "us"), the operator of ExpiryGuard.
 
 ---
 
-## What to Update on GitHub
+## 2. Description of Service
 
-Replace these files from v4.0.4:
-- `backend/server.js` — cron fix, profile route, notifications, new admin routes
-- `backend/supabase_schema.sql` — new columns and tables
-- `frontend/index.html` — all user-facing fixes
-- `frontend/admin.html` — registration toggle, bank accounts field, SMS threshold
-
-Add new files:
-- `BANK_ACCOUNTS_TEMPLATE.txt`
-- `TERMS_TEMPLATE.txt`
+ExpiryGuard is a product expiry tracking application that allows users to:
+- Track product expiry dates
+- Receive SMS and email notifications for expiring products
+- Manage product contacts and categories
+- Purchase credit packages to expand product tracking capacity
 
 ---
 
-## Supabase — Run Schema Again
+## 3. Account Registration
 
-Run `supabase_schema.sql` in Supabase SQL Editor. It safely adds:
-- `username_changes` column to profiles
-- `added_in_test_mode` column to products
-- `notifications` table (new)
-- New admin_settings keys: `registration_open`, `max_username_changes`, `bank_accounts`
+3.1 You must provide accurate, current, and complete information when creating an account.
 
-All statements use `IF NOT EXISTS` or `ON CONFLICT DO NOTHING` — safe to re-run.
+3.2 You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.
 
----
+3.3 You must notify us immediately at [YOUR EMAIL] if you suspect any unauthorised use of your account.
 
-## New Environment Variables
+3.4 We reserve the right to refuse registration or terminate accounts at our sole discretion.
 
-No new Railway environment variables are needed for v4.0.5. All new settings are managed from the Admin Panel → Settings.
+3.5 You must be at least 18 years old to create an account.
 
 ---
 
-## Setting Up Terms & Conditions
+## 4. Credits and Payments
 
-1. Open `TERMS_TEMPLATE.txt` from this package
-2. Fill in your name, app name, email, and jurisdiction
-3. Upload the file to your GitHub repository as `TERMS.md`
-4. Copy the raw GitHub URL of your file, e.g.:
-   `https://raw.githubusercontent.com/yourusername/yourrepo/main/TERMS.md`
-   Or use the rendered version:
-   `https://github.com/yourusername/yourrepo/blob/main/TERMS.md`
-5. In the Admin Panel → Settings, paste this URL into **Terms & Conditions URL**
-6. Save settings — the signup page will immediately show the link
+4.1 **Credit System:** ExpiryGuard operates on a credit-based system. Each product slot requires one (1) credit. Deleting a product refunds one credit to your account.
 
----
+4.2 **Free Credits:** New accounts receive a number of free credits as determined by the Operator from time to time.
 
-## Setting Up Bank Transfer Fallback
+4.3 **Purchasing Credits:** Additional credits may be purchased via Paystack (online payment) or bank transfer. Prices are displayed in the app and are subject to change with reasonable notice.
 
-1. In the Admin Panel → Settings → Bank Account Fallback, enter your accounts
-2. One account per line, format: `AccountNumber|BankName|AccountName|ContactEmail`
-3. Example:
-   ```
-   0123456789|First Bank Nigeria|John Doe|payments@yourdomain.com
-   9876543210|GTBank|John Doe|payments@yourdomain.com
-   ```
-4. The bank transfer section appears in the credits modal when:
-   - Paystack is not configured, OR
-   - Paystack payment initialization fails
+4.4 **Non-Refundable:** All credit purchases are final and non-refundable, except where required by applicable law. If you experience a technical issue with a payment, contact us within 7 days at [YOUR EMAIL].
 
-When a user pays via bank transfer:
-1. They send the screenshot to your contact email
-2. You verify in your banking app
-3. In Admin → Users → Manage, tap "Add Credits" with the appropriate amount
+4.5 **Bank Transfer:** If paying via bank transfer, credits are added manually within 3–8 business hours after receipt confirmation. We are not responsible for delays caused by bank processing times.
+
+4.6 **No Expiry:** Purchased credits do not expire as long as your account remains active.
+
+4.7 **Account Suspension:** Credits are not refundable if your account is suspended for violation of these Terms.
 
 ---
 
-## Kodular WebView — Complete Setup Guide
+## 5. SMS and Email Notifications
 
-### Why the Logo Didn't Load on Initialization
+5.1 By adding contact phone numbers or email addresses, you confirm that you have the consent of those contacts to receive SMS and email notifications from ExpiryGuard.
 
-Kodular's WebView has a timing bug: `goto_url` in `Screen.Initialize` fires before the WebView component is fully mounted. The page gets a "connection refused" error.
+5.2 You are solely responsible for ensuring that contacts have consented to receive such notifications.
 
-**Fix:** Use a `Clock` component:
-1. Drag a `Clock` component onto your screen
-2. Set `Enabled = False` initially
-3. Set `TimerInterval = 600` (600ms)
-4. In `Screen.Initialize`: set `Clock1.Enabled = True`
-5. In `Clock1.Timer`: 
-   - Set `Clock1.Enabled = False` (fire only once)
-   - Call `WebViewer1.GoToUrl(your_netlify_url)`
+5.3 We are not responsible for SMS or email delivery failures caused by third-party providers (Twilio, Resend), network issues, or incorrect contact information.
 
-This gives the WebView time to mount before navigation.
+5.4 SMS usage is subject to the policies of our SMS provider (Twilio). You must not use the SMS feature to send spam, unsolicited messages, or messages to contacts who have not consented.
 
-### Emoji Showing as Boxes
-
-If emoji characters appear as ☐ or ? on the device:
-- This is an Android system font issue, not a code issue
-- The HTML is correctly UTF-8 encoded
-- Solution: In Kodular, set `WebViewer.UserAgent` to a modern Chrome UA string, or update the device's Android System Webview from Play Store
-
-### CSV Download
-
-CSV downloads via the ⬇ CSV button:
-- In **Chrome/Firefox**: downloads normally as a file
-- In **Kodular WebView**: opens as a `data:text/csv` URI. The user must tap the browser menu (⋮) and select "Download" or "Save"
-- The app shows a toast: "CSV opened — tap ⋮ to save"
-
-### Restricting to Play Store Only
-
-True Play Store enforcement requires Google's Play Integrity API (complex server-side integration). Practical alternative:
-1. Add a secret header in Kodular: `WebViewer.RequestHeaders = "x-app-source: kodular"`
-2. Create a backend check route that validates this header
-3. Show a "Please install from Play Store" message if header is missing
-4. This stops casual browser users but not determined hackers — sufficient for most cases
+5.5 SMS alerts are available only to users with a paid plan or sufficient credits as defined by the Operator.
 
 ---
 
-## Dynamic Railway URL (Why Not to Do It)
+## 6. Acceptable Use
 
-**The request:** Store the Railway URL in a Railway environment variable so future URL changes don't require a frontend update.
+You agree not to:
 
-**Why this is a bad idea:**
-- The frontend (HTML) runs in the user's browser, not on Railway. It cannot read Railway env vars.
-- Serving the URL via an API endpoint is circular: to fetch the URL, the frontend needs to already know the URL.
-- The only practical solutions are: (a) hardcode the URL in the frontend (what we do — one file change when it changes), or (b) use a custom domain pointed at Railway so the URL never changes.
+6.1 Use the Service for any unlawful purpose or in violation of any applicable laws or regulations.
 
-**Recommended solution — Custom Domain:**
-1. Register a domain (e.g. `api.expiryguard.com.ng`)
-2. In Railway → Settings → Networking → Custom Domain, add your domain
-3. Add a CNAME record in your DNS: `api` → `your-railway-url.up.railway.app`
-4. Update `API_BASE` in `index.html` to `https://api.expiryguard.com.ng`
-5. Future Railway URL changes: just update the CNAME record, no code change needed
+6.2 Attempt to gain unauthorised access to any part of the Service, other users' accounts, or our backend systems.
 
----
+6.3 Use automated scripts, bots, or other means to scrape, crawl, or abuse the Service.
 
-## Admin Panel — Feature Reference
+6.4 Reverse engineer, decompile, or attempt to extract the source code of the Service.
 
-### Users Table
-Columns: Name, Username, Email, Plan, Credits (live), Products (live), Joined, Status (Active / Test Mode / Blocked)
+6.5 Use the Service to send spam, harassing, or fraudulent communications.
 
-### User Management Panel (click "Manage")
-- **Credits** — Add positive numbers to add, negative to remove
-- **Plan** — Change between Free / Paid / Admin
-- **Test Mode** — Enable for N days (1–90). Disable immediately. Disabling auto-deletes all products the user added during test mode
-- **Block/Unblock** — Blocking immediately invalidates their session; next API request returns HTTP 403 and the frontend forces logout
-- **Clear User Data** — Deletes all their products, contacts, alert logs. Credits reset to free default. Account remains intact
-- **Delete Account** — Permanently removes user and all data (irreversible)
+6.6 Impersonate any person or entity, or misrepresent your affiliation with any person or entity.
 
-### Settings Reference
+6.7 Upload or transmit any malicious code, viruses, or harmful content.
 
-| Setting | Default | Effect |
-|---|---|---|
-| `cron_expired_time` | `07:00` | UTC time for expired product alerts (daily) |
-| `cron_warning_time` | `19:00` | UTC time for warning/critical alerts (daily) |
-| `cron_enabled` | `true` | Toggle all scheduled alerts on/off |
-| `free_credits` | `10` | Credits given to new users on signup |
-| `credit_price_20` | `150000` | Price for 20 credits in kobo (₦1,500) |
-| `credit_price_50` | `300000` | Price for 50 credits in kobo (₦3,000) |
-| `credit_price_100` | `500000` | Price for 100 credits in kobo (₦5,000) |
-| `sms_min_credits` | `50` | Minimum credits to unlock SMS alerts |
-| `paystack_public_key` | — | Sent to frontend for payment initialisation |
-| `bank_accounts` | — | Pipe-delimited bank account fallback |
-| `terms_url` | — | URL for Terms & Conditions on signup page |
-| `auto_logout_minutes` | `60` | Idle session timeout (0 = disabled) |
-| `max_username_changes` | `3` | How many times a user can change their username (0 = never) |
-| `registration_open` | `true` | Toggle user registration on/off |
-| `maintenance_mode` | `false` | Only admins can log in |
-| `app_version` | `4.0.5` | Kodular app checks this for update prompts |
-| `update_message` | — | Message shown in Kodular when version mismatch |
+6.8 Interfere with or disrupt the integrity or performance of the Service.
 
 ---
 
-## SMS / OCR Gate Logic
+## 7. Data and Privacy
 
-A user can use SMS alerts and OCR label scan if **any** of the following are true:
-1. Their `plan` is `paid` or `admin`
-2. Their `test_mode` is active
-3. Their `credits` count is ≥ `sms_min_credits` (configurable, default 50)
+7.1 **Data You Provide:** We store the information you provide when using the Service, including product names, expiry dates, contact information, and account details.
 
-This logic is checked:
-- In the frontend when rendering the contact "Notify Via" options
-- In the `addContact()` function before showing SMS radio button
-- In the backend's product creation route (SMS preference respected regardless, but the frontend enforces the gate)
+7.2 **Data Storage:** All data is stored securely using Supabase (PostgreSQL) with row-level security enabled. Data is stored in servers located in [SUPABASE REGION — check your Supabase project settings].
 
----
+7.3 **Data Use:** We use your data solely to provide the Service. We do not sell your data to third parties.
 
-## Notifications System
+7.4 **Third-Party Services:** The Service integrates with Twilio (SMS), Resend (email), Paystack (payments), and Anthropic (AI label scanning). These providers have their own privacy policies and we are not responsible for their data practices.
 
-Notifications are created automatically when:
-- A new account is created (welcome message)
-- Credits are added via Paystack payment
-- Credits are added manually by admin
-- Test mode is granted by admin
-- Test mode is disabled by admin (with product cleanup notice)
-- Test mode expires automatically
+7.5 **Data Deletion:** You may request deletion of your account and all associated data by contacting us at [YOUR EMAIL]. We will action such requests within 30 days.
 
-Users see notifications via:
-- Bell icon (🔔) in topbar with red dot when unread
-- Notifications page (desktop sidebar + mobile bottom nav)
-- Notifications modal (bell icon click)
+7.6 **Data Retention:** If you delete your account, all your data is permanently deleted from our systems. Deleted data cannot be recovered.
+
+7.7 **Cookies and Local Storage:** The Service uses browser local storage to save your session and preferences. No third-party tracking cookies are used.
 
 ---
 
-## Deployment Checklist
+## 8. AI Label Scanning (OCR)
 
-**Supabase:**
-- [ ] Run `supabase_schema.sql` in SQL Editor
+8.1 The OCR feature uses Anthropic's Claude AI to read product labels. Images you upload for scanning are processed by Anthropic's API and are subject to Anthropic's usage policies.
 
-**GitHub:**
-- [ ] Replace `backend/server.js`
-- [ ] Replace `backend/supabase_schema.sql`
-- [ ] Replace `frontend/index.html`
-- [ ] Replace `frontend/admin.html`
-- [ ] Add `TERMS_TEMPLATE.txt` and `BANK_ACCOUNTS_TEMPLATE.txt`
+8.2 We do not store uploaded images beyond the duration needed to process them. Images are deleted from our servers immediately after the OCR response is received.
 
-**Railway:**
-- [ ] Redeploys automatically on GitHub push
-- [ ] No new env vars needed for v4.0.5
+8.3 OCR results are provided as-is and may not always be accurate. You are responsible for verifying expiry dates before relying on them.
 
-**Netlify:**
-- [ ] Upload new `index.html`
-- [ ] Upload `admin.html` (accessible at `/admin.html`)
-
-**Admin Panel (first-time setup after deploy):**
-- [ ] Set Terms URL
-- [ ] Set Bank Account Fallback entries
-- [ ] Set Paystack Public Key
-- [ ] Configure credit prices if different from defaults
-- [ ] Verify cron times are correct for your timezone
+8.4 OCR is available only to paid, admin, or test-mode users, or users with sufficient credits as defined by the Operator.
 
 ---
 
-## Revenue Projections
+## 9. Service Availability
 
-| Monthly Active Users | Revenue (if 20% convert at ₦3,000 avg) | Infrastructure |
-|---|---|---|
-| 100 | ₦60,000 | Railway Hobby $5/mo |
-| 500 | ₦300,000 | Railway Hobby $5/mo |
-| 2,000 | ₦1,200,000 | Railway Pro $20/mo + Supabase Pro $25/mo |
-| 10,000 | ₦6,000,000 | Railway Pro + Supabase Pro + Twilio volume discount |
+9.1 We strive to maintain high availability but do not guarantee uninterrupted access to the Service.
+
+9.2 We reserve the right to perform maintenance, updates, or modifications to the Service at any time, with or without prior notice.
+
+9.3 We are not liable for any loss or damage caused by Service downtime, data loss, or interruptions.
+
+9.4 **Maintenance Mode:** The Operator may enable maintenance mode at any time, during which only admin users can access the Service.
 
 ---
 
-## Support Contact
+## 10. Account Suspension and Termination
 
-For users who pay via bank transfer, direct them to your contact email set in the Bank Account Fallback field. Credits are added manually from Admin → Users → Manage within 3–8 hours.
+10.1 We reserve the right to suspend or terminate your account at any time, with or without notice, if we believe you have violated these Terms.
+
+10.2 If your account is suspended or terminated, you forfeit any unused credits without refund.
+
+10.3 You may close your account at any time by contacting us at [YOUR EMAIL].
+
+10.4 Upon termination, all your data will be permanently deleted within 30 days.
+
+---
+
+## 11. Intellectual Property
+
+11.1 The Service, including its design, code, and content, is owned by the Operator and is protected by applicable intellectual property laws.
+
+11.2 You retain ownership of the data you input into the Service (product names, contacts, etc.).
+
+11.3 You grant us a limited, non-exclusive licence to store and process your data solely for the purpose of providing the Service.
+
+---
+
+## 12. Disclaimer of Warranties
+
+THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+WE DO NOT WARRANT THAT:
+- THE SERVICE WILL BE UNINTERRUPTED OR ERROR-FREE
+- EXPIRY DATE REMINDERS WILL BE DELIVERED ON TIME OR AT ALL
+- OCR READINGS WILL BE ACCURATE
+
+---
+
+## 13. Limitation of Liability
+
+TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, THE OPERATOR SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO:
+
+- LOSS OF PROFITS OR REVENUE
+- CONSUMPTION OF EXPIRED PRODUCTS DUE TO MISSED ALERTS
+- LOSS OF DATA
+- BUSINESS INTERRUPTION
+
+OUR TOTAL LIABILITY TO YOU FOR ALL CLAIMS ARISING FROM YOUR USE OF THE SERVICE SHALL NOT EXCEED THE TOTAL AMOUNT YOU PAID TO US IN THE 12 MONTHS PRECEDING THE CLAIM.
+
+---
+
+## 14. Indemnification
+
+You agree to indemnify, defend, and hold harmless the Operator, its officers, directors, employees, and agents from and against any claims, damages, losses, liabilities, costs, and expenses (including reasonable legal fees) arising out of or relating to:
+
+- Your use or misuse of the Service
+- Your violation of these Terms
+- Your violation of any applicable law or regulation
+- Any content you submit, post, or transmit through the Service
+
+---
+
+## 15. Governing Law and Dispute Resolution
+
+15.1 These Terms shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria.
+
+15.2 Any disputes arising out of or in connection with these Terms shall first be attempted to be resolved through good-faith negotiation between the parties.
+
+15.3 If negotiation fails, disputes shall be submitted to the exclusive jurisdiction of the courts of [YOUR STATE], Nigeria.
+
+---
+
+## 16. Changes to Terms
+
+16.1 We reserve the right to modify these Terms at any time.
+
+16.2 We will notify users of material changes by updating the "Last Updated" date at the top of this document and, where practicable, by in-app notification.
+
+16.3 Continued use of the Service after changes constitutes acceptance of the updated Terms.
+
+---
+
+## 17. Severability
+
+If any provision of these Terms is found to be invalid, illegal, or unenforceable, the remaining provisions shall continue in full force and effect.
+
+---
+
+## 18. Entire Agreement
+
+These Terms, together with our Privacy Policy (if separate), constitute the entire agreement between you and the Operator regarding the Service and supersede all prior agreements and understandings.
+
+---
+
+## 19. Contact Information
+
+For questions, support, or legal notices regarding these Terms, contact:
+
+**[YOUR NAME / BUSINESS NAME]**
+Email: [YOUR EMAIL]
+Address: [YOUR CITY, STATE, NIGERIA]
+
+---
+
+*These Terms and Conditions were last reviewed on [DATE]. Please check back periodically for updates.*
+
+---
+
+## HOW TO USE THIS TEMPLATE
+
+1. Replace all `[BRACKETED ITEMS]` with your actual information:
+   - `[DATE]` — today's date
+   - `[YOUR NAME / BUSINESS NAME]` — your name or registered business name
+   - `[YOUR EMAIL]` — your support/business email address
+   - `[YOUR STATE]` — your state in Nigeria (e.g., Lagos, Abuja, Edo)
+   - `[SUPABASE REGION]` — check Supabase dashboard → Project Settings → General → Region
+
+2. Save this file as `TERMS.md` in your GitHub repository
+
+3. Get the GitHub URL:
+   - Rendered: `https://github.com/USERNAME/REPO/blob/main/TERMS.md`
+   - Raw: `https://raw.githubusercontent.com/USERNAME/REPO/main/TERMS.md`
+
+4. In Admin Panel → Settings → Terms & Conditions URL, paste the URL and save
+
+5. The signup page will immediately show a working link to your terms
